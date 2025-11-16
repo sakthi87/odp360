@@ -1,0 +1,132 @@
+.table-records {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: white;
+}
+
+.records-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.records-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.records-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.records-count {
+  font-size: 12px;
+  color: #666;
+  background-color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.execution-time {
+  font-size: 11px;
+  color: #27ae60;
+  background-color: #d4edda;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.records-content {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 100%;
+}
+
+.records-table thead {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
+}
+
+.records-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #ddd;
+  background-color: #f8f9fa;
+  white-space: nowrap;
+}
+
+.records-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+  max-width: 300px;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.records-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.records-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.null-value {
+  color: #999;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.cell-json {
+  background-color: #f5f5f5;
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 11px;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 300px;
+  overflow-x: auto;
+}
+
+.loading-container,
+.records-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #999;
+  font-size: 14px;
+}
+

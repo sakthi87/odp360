@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  dse:
+    image: datastax/dse-server:5.1.33
+    container_name: dse-5.1.33
+    ports:
+      - "9042:9042"  # CQL
+      - "8983:8983"  # Solr
+      - "7000:7000"  # Inter-node
+      - "7001:7001"  # SSL Inter-node
+      - "9160:9160"  # Thrift
+      - "61621:61621"  # DSE Analytics
+    environment:
+      - DS_LICENSE=accept
+      - SOLR_ENABLED=1
+      - DSE_AUTH=allow_all
+      - CLUSTER_NAME=TestDSECluster
+      - DC=datacenter1
+      - RACK=rack1
+    volumes:
+      - dse-data:/var/lib/cassandra
+      - dse-logs:/var/log/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "nodetool status | grep -E '^UN' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    command: ["dse", "cassandra", "-f"]
+
+volumes:
+  dse-data:
+  dse-logs:
+

@@ -1,0 +1,146 @@
+.cassandra-browser {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.browser-top-section {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.browser-sidebar {
+  background-color: #fafafa;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.sidebar-header {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.add-connection-button {
+  width: 100%;
+  padding: 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-connection-button:hover {
+  background-color: #2980b9;
+}
+
+.browser-center {
+  background-color: #f9f9f9;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.browser-right {
+  background-color: #fafafa;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.bottom-resizer {
+  height: 4px;
+  background-color: #e0e0e0;
+  cursor: row-resize;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  transition: background-color 0.2s;
+}
+
+.bottom-resizer:hover {
+  background-color: #3498db;
+}
+
+.bottom-resizer:active {
+  background-color: #2980b9;
+}
+
+.browser-bottom {
+  min-height: 200px;
+  max-height: 70vh;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-top: 1px solid #ddd;
+}
+
+.center-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  font-size: 18px;
+}
+
+.center-note {
+  font-size: 12px;
+  color: #bbb;
+  margin-top: 8px;
+}
+
+.right-placeholder,
+.bottom-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  font-size: 14px;
+}
+
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  font-size: 14px;
+  padding: 20px;
+}
+
+.tree-node-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.tree-node-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.tree-node-meta {
+  color: #999;
+  font-size: 11px;
+  font-weight: normal;
+}
+

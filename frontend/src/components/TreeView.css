@@ -1,0 +1,59 @@
+.tree-view {
+  background-color: #fafafa;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  height: 100%;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.tree-node {
+  user-select: none;
+}
+
+.tree-node-content {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  color: #2c3e50;
+  border-left: 3px solid transparent;
+}
+
+.tree-node-content:hover {
+  background-color: #e8f4f8;
+  border-left-color: #3498db;
+}
+
+.tree-node-content.selected {
+  background-color: #d6eaf8;
+  color: #2980b9;
+  font-weight: 500;
+  border-left-color: #2980b9;
+}
+
+.tree-toggle {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  text-align: center;
+  line-height: 16px;
+  font-size: 10px;
+  color: #666;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.tree-toggle-spacer {
+  display: inline-block;
+  width: 16px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.tree-children {
+  border-left: 1px solid #e0e0e0;
+  margin-left: 8px;
+}
+
