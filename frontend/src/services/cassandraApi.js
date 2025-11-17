@@ -1,7 +1,29 @@
 // API service for fetching data from Cassandra clusters
 // This service layer abstracts the API calls to your backend
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
+// Automatically detect API URL based on current hostname
+// This allows the UI to work on any VM without hardcoding localhost
+function getApiBaseUrl() {
+  // If explicitly set via environment variable, use it
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+  
+  // Otherwise, detect from current window location
+  const protocol = window.location.protocol // http: or https:
+  const hostname = window.location.hostname // localhost, VM hostname, or IP
+  const port = window.location.port // Current port (if any)
+  
+  // If running on same host, use current hostname with backend port
+  // If port is 80 or 443, backend is likely on 8080
+  // Otherwise, assume backend is on same port or 8080
+  const backendPort = port && port !== '80' && port !== '443' ? port : '8080'
+  
+  // Construct API URL
+  return `${protocol}//${hostname}:${backendPort}/api`
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 /**
  * Test connection to Cassandra cluster
