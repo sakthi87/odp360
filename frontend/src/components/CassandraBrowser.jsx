@@ -60,6 +60,18 @@ const CassandraBrowser = () => {
     }
   }
 
+  // Refresh function to reload clusters and refresh tree
+  const handleRefresh = async () => {
+    // Clear expanded nodes to force reload
+    setExpandedNodes(new Set())
+    // Reload clusters
+    await loadClusters()
+    // If a table is selected, refresh its details and records
+    if (selectedNode && selectedNode.type === 'table') {
+      handleNodeSelect(selectedNode)
+    }
+  }
+
   // Load children when a node is expanded
   const loadNodeChildren = async (node) => {
     if (node.type === 'cluster') {
@@ -192,18 +204,9 @@ const CassandraBrowser = () => {
     try {
       const cluster = await addConnection(connectionRequest)
       
-      // Add cluster to tree
-      const newClusterNode = {
-        id: cluster.clusterId,
-        type: 'cluster',
-        label: cluster.name,
-        host: cluster.datacenter || 'N/A',
-        clusterId: cluster.clusterId,
-        status: cluster.status,
-        children: [],
-      }
+      // Reload clusters from backend to avoid duplicates
+      await loadClusters()
       
-      setTreeData((prev) => [...prev, newClusterNode])
       return cluster
     } catch (error) {
       console.error('Error adding connection:', error)
@@ -330,13 +333,23 @@ const CassandraBrowser = () => {
           {/* Left Panel - Tree View */}
           <div className="browser-sidebar">
             <div className="sidebar-header">
-              <button 
-                className="add-connection-button"
-                onClick={() => setConnectionDialogOpen(true)}
-                title="Add Connection"
-              >
-                + Add Connection
-              </button>
+              <div className="sidebar-buttons">
+                <button 
+                  className="add-connection-button"
+                  onClick={() => setConnectionDialogOpen(true)}
+                  title="Add Connection"
+                >
+                  + Add Connection
+                </button>
+                <button 
+                  className="refresh-button"
+                  onClick={handleRefresh}
+                  title="Refresh"
+                  disabled={loading}
+                >
+                  🔄
+                </button>
+              </div>
             </div>
             {loading ? (
               <div className="loading-container">

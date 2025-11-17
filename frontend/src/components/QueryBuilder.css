@@ -7,7 +7,7 @@
 }
 
 .query-header {
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid #e0e0e0;
   flex-shrink: 0;
 }
@@ -26,7 +26,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 12px;
+  padding: 8px;
 }
 
 .query-editor {
@@ -34,10 +34,10 @@
   width: 100%;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  padding: 12px;
+  padding: 8px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.4;
   resize: none;
   outline: none;
   background-color: #fafafa;
@@ -55,26 +55,34 @@
 }
 
 .query-footer {
-  padding: 12px 16px;
+  padding: 6px 12px;
   border-top: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  gap: 8px;
+}
+
+.query-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .query-hint {
-  font-size: 11px;
+  font-size: 10px;
   color: #999;
+  margin: 0;
 }
 
 .execute-button {
   background-color: #3498db;
   color: white;
   border: none;
-  padding: 8px 20px;
+  padding: 6px 16px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -89,6 +97,32 @@
 }
 
 .execute-button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.deploy-button {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.deploy-button:hover:not(:disabled) {
+  background-color: #229954;
+}
+
+.deploy-button:active:not(:disabled) {
+  background-color: #1e8449;
+}
+
+.deploy-button:disabled {
   background-color: #bdc3c7;
   cursor: not-allowed;
   opacity: 0.6;

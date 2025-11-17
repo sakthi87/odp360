@@ -35,6 +35,15 @@ const QueryBuilder = ({ selectedTable, tableDetails, onExecute }) => {
     }
   }
 
+  const handleDeploy = () => {
+    if (!query.trim()) {
+      alert('Please enter a query to deploy')
+      return
+    }
+    // TODO: Implement deploy functionality
+    alert('Deploy functionality coming soon')
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault()
@@ -58,13 +67,22 @@ const QueryBuilder = ({ selectedTable, tableDetails, onExecute }) => {
         />
       </div>
       <div className="query-footer">
-        <button 
-          className="execute-button" 
-          onClick={handleExecute}
-          disabled={!query.trim() || executing || !selectedTable}
-        >
-          {executing ? 'Executing...' : 'Execute'}
-        </button>
+        <div className="query-buttons">
+          <button 
+            className="execute-button" 
+            onClick={handleExecute}
+            disabled={!query.trim() || executing || !selectedTable}
+          >
+            {executing ? 'Executing...' : 'Execute'}
+          </button>
+          <button 
+            className="deploy-button" 
+            onClick={handleDeploy}
+            disabled={!query.trim() || executing || !selectedTable}
+          >
+            Deploy
+          </button>
+        </div>
         <small className="query-hint">Press Ctrl+Enter to execute</small>
       </div>
     </div>
