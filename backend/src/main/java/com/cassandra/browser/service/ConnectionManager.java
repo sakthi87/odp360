@@ -48,6 +48,9 @@ public class ConnectionManager {
         configBuilder.withInt(DefaultDriverOption.CONNECTION_POOL_LOCAL_SIZE, 1);
         configBuilder.withInt(DefaultDriverOption.CONNECTION_POOL_REMOTE_SIZE, 1);
         
+        // Set consistency level to LOCAL_QUORUM
+        configBuilder.withString(DefaultDriverOption.REQUEST_CONSISTENCY, "LOCAL_QUORUM");
+        
         CqlSessionBuilder builder = CqlSession.builder()
                 .withLocalDatacenter(datacenter)
                 .withConfigLoader(configBuilder.build());
