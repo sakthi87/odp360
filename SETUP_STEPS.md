@@ -1,5 +1,13 @@
 # Setup Steps - Connect to Your DSE Environment
 
+## Prerequisites
+
+Before starting, ensure you have:
+- **Java 17+** installed (`java -version`)
+- **Node.js 16+** installed (`node -v`)
+- **Maven** (or use `./mvnw` wrapper included)
+- **DSE/Cassandra cluster** accessible (or use local Docker setup)
+
 ## 1. Start Backend
 ```bash
 cd backend
@@ -10,6 +18,7 @@ Backend runs on `http://localhost:8080`
 ## 2. Start Frontend
 ```bash
 cd frontend
+npm install  # First time only - installs dependencies
 npm run dev
 ```
 Frontend runs on `http://localhost:5173`
@@ -17,8 +26,10 @@ Frontend runs on `http://localhost:5173`
 ## 3. Open Application
 Open browser: `http://localhost:5173`
 
+**Note:** The app opens on the "Data Catalog" tab by default. Click on the **"C* Query"** tab to access the Cassandra browser.
+
 ## 4. Add Connection
-Click **"+ Add Connection"** button
+In the **"C* Query"** tab, click **"+ Add Connection"** button
 
 ## 5. Enter DSE Connection Details
 - **Host(s)**: `your-dse-host:9042` (comma-separated if multiple)
