@@ -1,11 +1,11 @@
 # Dependencies
 node_modules/
-frontend/node_modules/
+# frontend/node_modules/  # Commented out - including for deployment
 # backend/target/  # Commented out - JAR file needed for deployment
 # backend/.mvn/    # Commented out - Maven wrapper needed
 
 # Build outputs
-frontend/dist/
+# frontend/dist/  # Commented out - built frontend needed for deployment
 frontend/build/
 # backend/target/  # Commented out - JAR file needed for deployment
 
