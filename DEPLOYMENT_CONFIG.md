@@ -1,89 +1,48 @@
 # Deployment Configuration Guide
 
-This guide shows all places where you need to change hostname/URLs when deploying to a VM or different environment.
+**✅ UPDATED: The application now automatically detects hostnames!**
 
-## Example: Deploying to VM with hostname `odp360.example.com`
+Both frontend and backend automatically work with any VM hostname without manual configuration changes.
 
 ---
 
-## 1. Backend CORS Configuration
+## Automatic Hostname Detection
 
-### File: `backend/src/main/java/com/cassandra/browser/config/CorsConfig.java`
-**Line 16:**
-```java
-// Change from:
-.allowedOrigins("http://localhost:5173", "http://localhost:3000")
+### Frontend (UI)
+- **Automatically detects** the server hostname from `window.location`
+- Works with hostname, IP address, or localhost
+- No configuration needed!
 
-// To:
-.allowedOrigins("http://odp360.example.com", "https://odp360.example.com")
-```
+### Backend (API)
+- **CORS is set to wildcard (`*`)** by default
+- Accepts requests from any hostname/IP
+- No configuration needed!
 
-### File: `backend/src/main/java/com/cassandra/browser/controller/ConnectionController.java`
-**Line 17:**
-```java
-// Change from:
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+---
 
-// To:
-@CrossOrigin(origins = {"http://odp360.example.com", "https://odp360.example.com"})
-```
+## Optional: Manual Configuration (If Needed)
 
-### File: `backend/src/main/java/com/cassandra/browser/controller/QueryController.java`
-**Line 13:**
-```java
-// Change from:
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
+If you want to restrict CORS to specific origins instead of allowing all:
 
-// To:
-@CrossOrigin(origins = {"http://odp360.example.com", "https://odp360.example.com"})
-```
+### Backend CORS Configuration
 
-### File: `backend/src/main/resources/application.properties`
-**Line 5:**
+**File: `backend/src/main/resources/application.properties`**
 ```properties
-# Change from:
-spring.web.cors.allowed-origins=http://localhost:5173
+# Default (allows all origins):
+spring.web.cors.allowed-origins=*
 
-# To:
+# Or specify specific origins:
 spring.web.cors.allowed-origins=http://odp360.example.com,https://odp360.example.com
 ```
 
----
+### Frontend API URL (Optional Override)
 
-## 2. Frontend API Base URL
-
-### Option A: Environment Variable (Recommended for Production)
-
-Create file: `frontend/.env.production`
+**File: `frontend/.env.production`** (if you want to override auto-detection)
 ```bash
 VITE_API_BASE_URL=http://odp360.example.com:8080/api
-# OR if using HTTPS:
-VITE_API_BASE_URL=https://odp360.example.com/api
 ```
 
-**Note:** For production builds, set this before running `npm run build`
-
-### Option B: Docker Environment Variable
-
-**File: `docker-compose.yml`**
-**Line 20:**
-```yaml
-# Change from:
-- VITE_API_BASE_URL=http://localhost:8080/api
-
-# To:
-- VITE_API_BASE_URL=http://odp360.example.com:8080/api
-# OR if backend is on same VM but different port:
-- VITE_API_BASE_URL=http://odp360.example.com:8080/api
-```
-
-### File: `frontend/src/services/cassandraApi.js`
-**Line 4:**
-```javascript
-// This already uses environment variable, so no code change needed
-// Just ensure VITE_API_BASE_URL is set correctly
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api'
-```
+**Note:** The frontend will auto-detect the hostname, so this is usually not needed.
 
 ---
 
@@ -147,18 +106,16 @@ server.port=9090
 
 ## Quick Setup Checklist
 
-### For VM Deployment with hostname `odp360.example.com`:
+### For VM Deployment (No Configuration Needed!):
 
-- [ ] Update `CorsConfig.java` - allowedOrigins
-- [ ] Update `ConnectionController.java` - @CrossOrigin
-- [ ] Update `QueryController.java` - @CrossOrigin  
-- [ ] Update `application.properties` - spring.web.cors.allowed-origins
-- [ ] Create `frontend/.env.production` with `VITE_API_BASE_URL`
-- [ ] Update `docker-compose.yml` - VITE_API_BASE_URL (if using Docker)
-- [ ] Update `nginx.conf` - server_name (if using Docker)
+- [x] ✅ Frontend auto-detects hostname - **No changes needed**
+- [x] ✅ Backend accepts all origins - **No changes needed**
+- [ ] Deploy backend JAR
 - [ ] Rebuild frontend: `cd frontend && npm run build`
-- [ ] Restart backend service
-- [ ] Test: Open `http://odp360.example.com` in browser
+- [ ] Deploy frontend `dist/` folder
+- [ ] Access from any hostname - it works automatically!
+
+**That's it!** The application automatically adapts to your VM hostname.
 
 ---
 
