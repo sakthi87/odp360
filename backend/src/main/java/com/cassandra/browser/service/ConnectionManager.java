@@ -2,9 +2,12 @@ package com.cassandra.browser.service;
 
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
+import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
+import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import org.springframework.stereotype.Service;
 
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,8 +20,37 @@ public class ConnectionManager {
                                    java.util.List<String> hosts, 
                                    String username, String password,
                                    String keyspace) {
+        // Build driver configuration with increased timeouts
+        com.datastax.oss.driver.api.core.config.ProgrammaticDriverConfigLoaderBuilder configBuilder = 
+            DriverConfigLoader.programmaticBuilder();
+        
+        // Connection timeout (how long to wait to establish connection)
+        configBuilder.withDuration(DefaultDriverOption.CONNECTION_CONNECT_TIMEOUT, Duration.ofSeconds(30));
+        
+        // Request timeout (how long to wait for a response)
+        configBuilder.withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(60));
+        
+        // Control connection timeout (for control connection used for metadata)
+        configBuilder.withDuration(DefaultDriverOption.CONTROL_CONNECTION_TIMEOUT, Duration.ofSeconds(30));
+        
+        // Schema metadata refresh timeouts - CRITICAL for PT2S error
+        // PT2S means 2 seconds - we increase to 30 seconds
+        configBuilder.withDuration(DefaultDriverOption.METADATA_SCHEMA_REQUEST_TIMEOUT, Duration.ofSeconds(30));
+        configBuilder.withDuration(DefaultDriverOption.METADATA_SCHEMA_WINDOW, Duration.ofSeconds(30));
+        
+        // Topology metadata refresh timeout
+        configBuilder.withDuration(DefaultDriverOption.METADATA_TOPOLOGY_WINDOW, Duration.ofSeconds(30));
+        
+        // Enable schema metadata but with longer timeouts
+        configBuilder.withBoolean(DefaultDriverOption.METADATA_SCHEMA_ENABLED, true);
+        
+        // Connection pool settings
+        configBuilder.withInt(DefaultDriverOption.CONNECTION_POOL_LOCAL_SIZE, 1);
+        configBuilder.withInt(DefaultDriverOption.CONNECTION_POOL_REMOTE_SIZE, 1);
+        
         CqlSessionBuilder builder = CqlSession.builder()
-                .withLocalDatacenter(datacenter);
+                .withLocalDatacenter(datacenter)
+                .withConfigLoader(configBuilder.build());
         
         // Add contact points
         for (String host : hosts) {
@@ -34,7 +66,7 @@ public class ConnectionManager {
             builder.withAuthCredentials(username, password);
         }
         
-        // Set keyspace if provided
+        // Set keyspace if provided (but only after connection is established)
         if (keyspace != null && !keyspace.isEmpty()) {
             builder.withKeyspace(keyspace);
         }
