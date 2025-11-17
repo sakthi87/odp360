@@ -7,6 +7,8 @@ import com.datastax.oss.driver.api.core.CqlSessionBuilder;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.config.ProgrammaticDriverConfigLoaderBuilder;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.ConsistencyLevel;
 import org.springframework.stereotype.Service;
 
 import java.net.InetSocketAddress;
@@ -45,8 +47,9 @@ public class ConnectionTestService {
             configBuilder.withInt(DefaultDriverOption.CONNECTION_POOL_LOCAL_SIZE, 1);
             configBuilder.withInt(DefaultDriverOption.CONNECTION_POOL_REMOTE_SIZE, 1);
             
-            // Set consistency level to LOCAL_QUORUM
-            configBuilder.withString(DefaultDriverOption.REQUEST_CONSISTENCY, "LOCAL_QUORUM");
+            // For connection test, use ONE consistency (faster, doesn't require quorum)
+            // Regular operations will use LOCAL_QUORUM (set in ConnectionManager)
+            configBuilder.withString(DefaultDriverOption.REQUEST_CONSISTENCY, "ONE");
             
             CqlSessionBuilder builder = CqlSession.builder()
                     .withLocalDatacenter(request.getDatacenter())
@@ -72,7 +75,10 @@ public class ConnectionTestService {
             session = builder.build();
             
             // Try to execute a simple query to verify connection
-            session.execute("SELECT cluster_name FROM system.local");
+            // Use ONE consistency explicitly for connection test (faster, doesn't need quorum)
+            SimpleStatement testQuery = SimpleStatement.newInstance("SELECT cluster_name FROM system.local")
+                    .setConsistencyLevel(ConsistencyLevel.ONE);
+            session.execute(testQuery);
             
             // Get cluster name
             String clusterName = session.getMetadata().getClusterName().orElse("Unknown Cluster");
@@ -80,12 +86,19 @@ public class ConnectionTestService {
             return new ConnectionTestResponse(true, "Connection successful", clusterName);
             
         } catch (com.datastax.oss.driver.api.core.AllNodesFailedException e) {
+            String detailedError = e.getMessage();
+            // Include the underlying cause if available
+            Throwable cause = e.getCause();
+            if (cause != null) {
+                detailedError += "\nUnderlying cause: " + cause.getMessage();
+            }
             return new ConnectionTestResponse(false, 
                 "Connection failed: No node available to connect. Please check:\n" +
                 "- Host and port are correct\n" +
                 "- Cassandra is running and accessible\n" +
                 "- Network/firewall allows connection\n" +
-                "- Datacenter name is correct", null);
+                "- Datacenter name is correct\n" +
+                "- Error details: " + detailedError, null);
         } catch (com.datastax.oss.driver.api.core.DriverTimeoutException e) {
             return new ConnectionTestResponse(false, 
                 "Connection failed: Connection timeout. Please check:\n" +
@@ -116,8 +129,14 @@ public class ConnectionTestService {
                 }
             }
             
+            // Include full stack trace details for debugging
+            String fullError = errorMsg != null ? errorMsg : e.getClass().getSimpleName();
+            Throwable cause = e.getCause();
+            if (cause != null) {
+                fullError += "\nCause: " + cause.getMessage();
+            }
             return new ConnectionTestResponse(false, 
-                "Connection failed: " + (errorMsg != null ? errorMsg : e.getClass().getSimpleName()), null);
+                "Connection failed: " + fullError, null);
         } finally {
             if (session != null) {
                 try {
