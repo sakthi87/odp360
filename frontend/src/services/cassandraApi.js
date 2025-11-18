@@ -6,6 +6,7 @@
 function getApiBaseUrl() {
   // If explicitly set via environment variable, use it
   if (import.meta.env.VITE_API_BASE_URL) {
+    console.log('Using API URL from environment:', import.meta.env.VITE_API_BASE_URL)
     return import.meta.env.VITE_API_BASE_URL
   }
   
@@ -14,34 +15,56 @@ function getApiBaseUrl() {
   const hostname = window.location.hostname // localhost, VM hostname, or IP
   const port = window.location.port // Current port (if any)
   
-  // If running on same host, use current hostname with backend port
-  // If port is 80 or 443, backend is likely on 8080
-  // Otherwise, assume backend is on same port or 8080
-  const backendPort = port && port !== '80' && port !== '443' ? port : '8080'
+  // Backend is always on port 8080, regardless of frontend port
+  // If frontend is on 80/443, backend is on 8080
+  // If frontend is on other port (like 5173), backend is still on 8080
+  const backendPort = '8080'
   
   // Construct API URL
-  return `${protocol}//${hostname}:${backendPort}/api`
+  const apiUrl = `${protocol}//${hostname}:${backendPort}/api`
+  console.log('Auto-detected API URL:', apiUrl, '(from', window.location.href, ')')
+  return apiUrl
 }
 
 const API_BASE_URL = getApiBaseUrl()
+console.log('API Base URL:', API_BASE_URL)
 
 /**
  * Test connection to Cassandra cluster
  */
 export const testConnection = async (connectionRequest) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/clusters/test-connection`, {
+    const url = `${API_BASE_URL}/clusters/test-connection`
+    console.log('Testing connection to:', url)
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(connectionRequest),
     })
-    const data = await response.json()
+    
+    console.log('Response status:', response.status, response.statusText)
+    
     if (!response.ok) {
-      return { success: false, message: data.message || 'Connection failed' }
+      const errorText = await response.text()
+      console.error('Connection test failed:', response.status, errorText)
+      let errorData
+      try {
+        errorData = JSON.parse(errorText)
+      } catch (e) {
+        errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+      }
+      return { success: false, message: errorData.message || `Connection failed: ${response.status} ${response.statusText}` }
     }
+    
+    const data = await response.json()
     return data
   } catch (error) {
-    return { success: false, message: error.message || 'Failed to test connection' }
+    console.error('Network error testing connection:', error)
+    return { 
+      success: false, 
+      message: `Network error: ${error.message || 'Failed to connect to backend. Please check if backend is running on ${API_BASE_URL.replace('/api', '')}` 
+    }
   }
 }
 
@@ -50,18 +73,36 @@ export const testConnection = async (connectionRequest) => {
  */
 export const addConnection = async (connectionRequest) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/clusters`, {
+    const url = `${API_BASE_URL}/clusters`
+    console.log('Adding connection to:', url)
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(connectionRequest),
     })
+    
+    console.log('Add connection response status:', response.status, response.statusText)
+    
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to add connection')
+      const errorText = await response.text()
+      console.error('Add connection failed:', response.status, errorText)
+      let errorData
+      try {
+        errorData = JSON.parse(errorText)
+      } catch (e) {
+        errorData = { message: errorText || `HTTP ${response.status}: ${response.statusText}` }
+      }
+      throw new Error(errorData.message || `Failed to add connection: ${response.status} ${response.statusText}`)
     }
+    
     return await response.json()
   } catch (error) {
     console.error('Error adding connection:', error)
+    // Provide more helpful error message
+    if (error.message && error.message.includes('Failed to fetch')) {
+      throw new Error(`Cannot connect to backend at ${API_BASE_URL}. Please check:\n- Backend is running on port 8080\n- Backend is accessible from this hostname\n- No firewall blocking the connection`)
+    }
     throw error
   }
 }
