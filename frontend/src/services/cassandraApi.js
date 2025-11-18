@@ -63,7 +63,7 @@ export const testConnection = async (connectionRequest) => {
     console.error('Network error testing connection:', error)
     return { 
       success: false, 
-      message: `Network error: ${error.message || 'Failed to connect to backend. Please check if backend is running on ${API_BASE_URL.replace('/api', '')}` 
+      message: `Network error: ${error.message || `Failed to connect to backend. Please check if backend is running on ${API_BASE_URL.replace('/api', '')}`}` 
     }
   }
 }
