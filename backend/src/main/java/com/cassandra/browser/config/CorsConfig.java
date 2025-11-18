@@ -35,7 +35,7 @@ public class CorsConfig {
                             .allowedOrigins(origins)
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                             .allowedHeaders("*")
-                            .allowCredentials(true);
+                            .allowCredentials(false); // Not needed for this API, set to false for consistency
                 }
             }
         };
