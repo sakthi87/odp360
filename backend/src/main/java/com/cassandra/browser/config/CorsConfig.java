@@ -23,7 +23,7 @@ public class CorsConfig {
                             .allowedOriginPatterns("*") // Use allowedOriginPatterns for wildcard
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                             .allowedHeaders("*")
-                            .allowCredentials(true);
+                            .allowCredentials(false); // Cannot use credentials with wildcard
                 } else {
                     // Otherwise, use specific origins from configuration
                     String[] origins = allowedOrigins.split(",");
