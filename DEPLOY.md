@@ -7,7 +7,8 @@ This guide shows how to deploy the application using pre-built JAR and frontend 
 - **Java 17+** installed (`java -version`)
 - **Web server** (Nginx, Apache, or simple HTTP server)
 - Pre-built artifacts:
-  - `backend/target/cassandra-browser-api-1.0.0.jar`
+  - `backend-cassandra/target/cassandra-browser-api-1.0.0.jar`
+  - `backend-kafka/target/kafka-browser-api-1.0.0.jar` (optional)
   - `frontend/dist/` folder
 
 ---
@@ -16,8 +17,9 @@ This guide shows how to deploy the application using pre-built JAR and frontend 
 
 ### Copy JAR to server
 ```bash
-# Copy JAR file to your server
-scp backend/target/cassandra-browser-api-1.0.0.jar user@your-server:/opt/odp360/
+# Copy JAR files to your server
+scp backend-cassandra/target/cassandra-browser-api-1.0.0.jar user@your-server:/opt/odp360/
+scp backend-kafka/target/kafka-browser-api-1.0.0.jar user@your-server:/opt/odp360/  # Optional
 ```
 
 ### Run Backend
@@ -198,7 +200,7 @@ curl http://localhost  # or http://localhost:8000
 
 ## Complete Deployment Checklist
 
-- [ ] Copy JAR file to server: `backend/target/cassandra-browser-api-1.0.0.jar`
+- [ ] Copy JAR file to server: `backend-cassandra/target/cassandra-browser-api-1.0.0.jar`
 - [ ] Copy frontend dist folder: `frontend/dist/*`
 - [ ] Install Java 17+ on server
 - [ ] Run backend JAR: `java -jar cassandra-browser-api-1.0.0.jar`
@@ -294,7 +296,7 @@ If you want to package everything:
 **Create tar:**
 ```bash
 # On build machine
-tar -czf odp360-backend.tar.gz backend/target/cassandra-browser-api-1.0.0.jar
+tar -czf odp360-backend.tar.gz backend-cassandra/target/cassandra-browser-api-1.0.0.jar backend-kafka/target/kafka-browser-api-1.0.0.jar
 tar -czf odp360-frontend.tar.gz -C frontend dist
 ```
 

@@ -1,0 +1,26 @@
+services:
+  yugabyte:
+    image: yugabytedb/yugabyte:latest
+    container_name: yugabyte
+    ports:
+      - "7001:7000"  # YB-Master web UI (7001 for macOS to avoid AirPlay conflict)
+      - "9000:9000"  # YB-TServer web UI
+      - "15433:15433"  # YugabyteDB UI
+      - "5433:5433"  # YSQL port
+      # Note: YCQL port 9042 not needed since we only want YSQL
+    volumes:
+      - yugabyte-data:/root/var
+    command: [
+      "bin/yugabyted",
+      "start",
+      "--background=false"
+    ]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5433"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  yugabyte-data:
+

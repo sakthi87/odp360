@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import CassandraBrowser from './components/CassandraBrowser'
+import YSQLBrowser from './components/YSQLBrowser'
+import GraphQLBrowser from './components/GraphQLBrowser'
+import KafkaBrowser from './components/KafkaBrowser'
+import DataCatalog from './components/DataCatalog'
+import IntakeForm from './components/IntakeForm'
 import Tabs from './components/Tabs'
 import './App.css'
 
@@ -20,21 +25,17 @@ function App() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'datacatalog':
-        return (
-          <div className="tab-placeholder">
-            <h2>Data Catalog</h2>
-            <p>Coming soon</p>
-          </div>
-        )
+        return <DataCatalog />
+      case 'intake':
+        return <IntakeForm />
       case 'cassandra':
         return <CassandraBrowser />
       case 'yugabyte':
-        return (
-          <div className="tab-placeholder">
-            <h2>YB Query</h2>
-            <p>Coming soon</p>
-          </div>
-        )
+        return <YSQLBrowser />
+      case 'graphql':
+        return <GraphQLBrowser />
+      case 'kafka':
+        return <KafkaBrowser />
       case 'deployment':
         return (
           <div className="tab-placeholder">

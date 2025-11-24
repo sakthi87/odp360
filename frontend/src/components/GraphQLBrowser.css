@@ -1,0 +1,76 @@
+.graphql-browser {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.browser-top-section {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.browser-sidebar {
+  background-color: #fafafa;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.browser-sidebar > *:last-child {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.sidebar-header {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.browser-center {
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  min-height: 0;
+}
+
+.browser-center > * {
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.browser-right {
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  border-left: 1px solid #ddd;
+  min-height: 0;
+}
+
+.browser-right > * {
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+

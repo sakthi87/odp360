@@ -137,7 +137,7 @@ curl -X POST http://localhost:8080/api/clusters/{clusterId}/keyspaces/profile_da
 lsof -ti:8080
 
 # Check logs
-cd backend
+cd backend-cassandra
 ./mvnw spring-boot:run
 ```
 

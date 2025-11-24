@@ -11,8 +11,15 @@ Simple step-by-step guide to run the application in a new environment.
 
 ## Step 1: Run Backend
 
+**Cassandra API:**
 ```bash
-cd backend
+cd backend-cassandra
+./mvnw spring-boot:run
+```
+
+**Kafka API (optional):**
+```bash
+cd backend-kafka
 ./mvnw spring-boot:run
 ```
 
@@ -123,7 +130,8 @@ If you have the JAR file:
 
 ```bash
 # Step 1: Run Backend
-java -jar backend/target/cassandra-browser-api-1.0.0.jar
+java -jar backend-cassandra/target/cassandra-browser-api-1.0.0.jar
+```
 
 # Step 2-4: Same as above
 ```

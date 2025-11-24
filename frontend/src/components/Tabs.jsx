@@ -4,8 +4,11 @@ import './Tabs.css'
 const Tabs = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: 'datacatalog', label: 'Data Catalog' },
-    { id: 'cassandra', label: 'C* Query' },
-    { id: 'yugabyte', label: 'YB Query' },
+    { id: 'intake', label: 'ODP Intake' },
+    { id: 'cassandra', label: 'CQL' },
+    { id: 'yugabyte', label: 'YSQL' },
+    { id: 'graphql', label: 'GraphQL' },
+    { id: 'kafka', label: 'Kafka' },
     { id: 'deployment', label: 'Deployment' }
   ]
 

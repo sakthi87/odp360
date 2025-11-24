@@ -11,7 +11,11 @@ ODP360/
 │   ├── package.json
 │   └── vite.config.js
 │
-├── backend/               # Spring Boot API
+├── backend-cassandra/      # Spring Boot API for Cassandra
+│   ├── src/
+│   └── pom.xml
+│
+├── backend-kafka/         # Spring Boot API for Kafka
 │   ├── src/
 │   └── pom.xml
 │
@@ -62,10 +66,17 @@ See `CASSANDRA_SETUP.md` for more options.
 
 ### 1. Start Backend (Spring Boot)
 
+**Cassandra API:**
 ```bash
-cd backend
+cd backend-cassandra
 ./mvnw spring-boot:run
 # Or on Windows: mvnw.cmd spring-boot:run
+```
+
+**Kafka API (optional):**
+```bash
+cd backend-kafka
+./mvnw spring-boot:run
 ```
 
 Backend will run on `http://localhost:8080`
@@ -95,8 +106,15 @@ Frontend will run on `http://localhost:5173`
 
 ### Backend Development
 
+**Cassandra API:**
 ```bash
-cd backend
+cd backend-cassandra
+./mvnw spring-boot:run
+```
+
+**Kafka API:**
+```bash
+cd backend-kafka
 ./mvnw spring-boot:run
 ```
 
@@ -119,10 +137,18 @@ npm run build
 
 ### Build Backend
 
+**Cassandra API:**
 ```bash
-cd backend
+cd backend-cassandra
 ./mvnw package
-# Output: backend/target/cassandra-browser-api-1.0.0.jar
+# Output: backend-cassandra/target/cassandra-browser-api-1.0.0.jar
+```
+
+**Kafka API:**
+```bash
+cd backend-kafka
+./mvnw package
+# Output: backend-kafka/target/kafka-browser-api-1.0.0.jar
 ```
 
 ## API Endpoints
@@ -153,7 +179,7 @@ VITE_API_BASE_URL=http://localhost:8080/api
 
 ### Backend Configuration
 
-Edit `backend/src/main/resources/application.properties`:
+Edit `backend-cassandra/src/main/resources/application.properties`:
 ```properties
 server.port=8080
 spring.web.cors.allowed-origins=http://localhost:5173

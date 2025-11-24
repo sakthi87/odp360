@@ -41,7 +41,7 @@ ODP360/
 │   ├── package.json
 │   └── vite.config.js
 │
-├── backend/                     # Spring Boot API
+├── backend-cassandra/            # Spring Boot API for Cassandra
 │   ├── src/main/java/com/cassandra/browser/
 │   │   ├── controller/
 │   │   │   ├── ConnectionController.java
@@ -67,9 +67,15 @@ ODP360/
 
 ### Option 1: Development (Recommended)
 
-**Terminal 1 - Backend:**
+**Terminal 1 - Cassandra Backend:**
 ```bash
-cd backend
+cd backend-cassandra
+./mvnw spring-boot:run
+```
+
+**Terminal 2 - Kafka Backend (optional):**
+```bash
+cd backend-kafka
 ./mvnw spring-boot:run
 ```
 
@@ -114,7 +120,8 @@ docker-compose up --build
 
 ## 📝 Next Steps
 
-1. Start backend: `cd backend && ./mvnw spring-boot:run`
+1. Start Cassandra backend: `cd backend-cassandra && ./mvnw spring-boot:run`
+2. Start Kafka backend (optional): `cd backend-kafka && ./mvnw spring-boot:run`
 2. Start frontend: `cd frontend && npm run dev`
 3. Open browser: `http://localhost:5173`
 4. Click "+ Add Connection"

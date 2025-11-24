@@ -1,0 +1,118 @@
+.graphql-collection-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.empty-collections {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  padding: 20px;
+  text-align: center;
+}
+
+.empty-collections p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.empty-collections small {
+  font-size: 12px;
+  color: #bbb;
+}
+
+.collection-item {
+  margin-bottom: 4px;
+}
+
+.collection-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  gap: 8px;
+}
+
+.collection-header:hover {
+  background-color: #f0f0f0;
+}
+
+.collection-header.selected {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.collection-toggle {
+  font-size: 10px;
+  color: #666;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.collection-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.collection-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-count {
+  font-size: 11px;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.collection-queries {
+  margin-left: 24px;
+  margin-top: 4px;
+  padding-left: 8px;
+  border-left: 2px solid #e0e0e0;
+}
+
+.query-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.query-item:hover {
+  background-color: #f5f5f5;
+}
+
+.query-item.selected {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.query-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.query-name {
+  flex: 1;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+

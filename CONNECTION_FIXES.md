@@ -54,7 +54,7 @@ Based on the error logs from your environment, the following issues have been fi
 ## Testing the Fix
 
 1. **Stop the old backend** (if running)
-2. **Deploy the new JAR**: `backend/target/cassandra-browser-api-1.0.0.jar`
+2. **Deploy the new JAR**: `backend-cassandra/target/cassandra-browser-api-1.0.0.jar`
 3. **Start the backend**: `java -jar cassandra-browser-api-1.0.0.jar`
 4. **Test connection** from the UI
 

@@ -1,0 +1,16 @@
+com/kafka/browser/KafkaBrowserApplication.class
+com/kafka/browser/config/CorsConfig.class
+com/kafka/browser/service/KafkaConnectionManager.class
+com/kafka/browser/service/KafkaConnectionManager$ConnectionInfo.class
+com/kafka/browser/model/request/KafkaConsumeRequest.class
+com/kafka/browser/model/response/KafkaTopicResponse$PartitionInfo.class
+com/kafka/browser/service/KafkaMetadataService.class
+com/kafka/browser/config/CorsConfig$1.class
+com/kafka/browser/model/response/KafkaMessageResponse.class
+com/kafka/browser/exception/GlobalExceptionHandler.class
+com/kafka/browser/model/request/KafkaConnectionRequest.class
+com/kafka/browser/controller/RootController.class
+com/kafka/browser/model/response/KafkaClusterResponse.class
+com/kafka/browser/model/response/KafkaTopicResponse.class
+com/kafka/browser/controller/KafkaController.class
+com/kafka/browser/service/KafkaMessageService.class

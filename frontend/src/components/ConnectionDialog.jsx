@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import './ConnectionDialog.css'
 
-const ConnectionDialog = ({ open, onClose, onTest, onConnect, testing, connecting }) => {
+const ConnectionDialog = ({ open, onClose, onTest, onConnect, testing, connecting, keyspaceLabel = 'Keyspace', keyspacePlaceholder = 'profile_datastore', defaultHosts = 'localhost:9042', defaultDatacenter = 'datacenter1', title = 'Connect to Cassandra' }) => {
   const [formData, setFormData] = useState({
     name: '',
-    hosts: 'localhost:9042',
-    datacenter: 'datacenter1',
+    hosts: defaultHosts,
+    datacenter: defaultDatacenter,
     username: '',
     password: '',
     keyspace: ''
@@ -24,14 +24,20 @@ const ConnectionDialog = ({ open, onClose, onTest, onConnect, testing, connectin
 
   const handleTest = async () => {
     const hosts = formData.hosts.split(',').map(h => h.trim())
-    const result = await onTest({
+    const requestData = {
       name: formData.name || 'Untitled Connection',
       hosts,
       datacenter: formData.datacenter,
       username: formData.username || null,
-      password: formData.password || null,
-      keyspace: formData.keyspace || null
-    })
+      password: formData.password || null
+    }
+    // Use 'database' for YSQL, 'keyspace' for Cassandra
+    if (keyspaceLabel === 'Database') {
+      requestData.database = formData.keyspace || null
+    } else {
+      requestData.keyspace = formData.keyspace || null
+    }
+    const result = await onTest(requestData)
     setTestResult(result)
   }
 
@@ -42,20 +48,26 @@ const ConnectionDialog = ({ open, onClose, onTest, onConnect, testing, connectin
     }
 
     const hosts = formData.hosts.split(',').map(h => h.trim())
-    await onConnect({
+    const requestData = {
       name: formData.name || 'Untitled Connection',
       hosts,
       datacenter: formData.datacenter,
       username: formData.username || null,
-      password: formData.password || null,
-      keyspace: formData.keyspace || null
-    })
+      password: formData.password || null
+    }
+    // Use 'database' for YSQL, 'keyspace' for Cassandra
+    if (keyspaceLabel === 'Database') {
+      requestData.database = formData.keyspace || null
+    } else {
+      requestData.keyspace = formData.keyspace || null
+    }
+    await onConnect(requestData)
     
     // Reset form
     setFormData({
       name: '',
-      hosts: 'localhost:9042',
-      datacenter: 'datacenter1',
+      hosts: defaultHosts,
+      datacenter: defaultDatacenter,
       username: '',
       password: '',
       keyspace: ''
@@ -68,7 +80,7 @@ const ConnectionDialog = ({ open, onClose, onTest, onConnect, testing, connectin
     <div className="connection-dialog-overlay" onClick={onClose}>
       <div className="connection-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
-          <h2>Connect to Cassandra</h2>
+          <h2>{title}</h2>
           <button className="close-button" onClick={onClose}>×</button>
         </div>
         
@@ -91,7 +103,7 @@ const ConnectionDialog = ({ open, onClose, onTest, onConnect, testing, connectin
               name="hosts"
               value={formData.hosts}
               onChange={handleChange}
-              placeholder="localhost:9042 or host1:9042,host2:9042"
+              placeholder={keyspaceLabel === 'Database' ? 'localhost:5433 or host1:5433,host2:5433' : 'localhost:9042 or host1:9042,host2:9042'}
               required
             />
             <small>Comma-separated for multiple hosts</small>
@@ -132,13 +144,13 @@ const ConnectionDialog = ({ open, onClose, onTest, onConnect, testing, connectin
           </div>
 
           <div className="form-group">
-            <label>Default Keyspace (optional)</label>
+            <label>Default {keyspaceLabel} (optional)</label>
             <input
               type="text"
               name="keyspace"
               value={formData.keyspace}
               onChange={handleChange}
-              placeholder="profile_datastore"
+              placeholder={keyspacePlaceholder}
             />
           </div>
 

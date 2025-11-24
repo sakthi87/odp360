@@ -27,7 +27,7 @@ const TreeView = ({ data, onNodeSelect, onNodeExpand, renderNode, expandedNodes:
 
   const renderTreeNode = (node, level = 0) => {
     // Nodes that can have children (even if not loaded yet)
-    const canHaveChildren = node.type === 'cluster' || node.type === 'keyspace'
+    const canHaveChildren = node.type === 'cluster' || node.type === 'keyspace' || node.type === 'database'
     const hasChildren = node.children && node.children.length > 0
     const expanded = isExpanded(node.id)
 

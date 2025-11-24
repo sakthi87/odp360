@@ -9,11 +9,20 @@ Before starting, ensure you have:
 - **DSE/Cassandra cluster** accessible (or use local Docker setup)
 
 ## 1. Start Backend
+
+**Cassandra API:**
 ```bash
-cd backend
+cd backend-cassandra
 ./mvnw spring-boot:run
 ```
-Backend runs on `http://localhost:8080`
+Cassandra API runs on `http://localhost:8080`
+
+**Kafka API (optional):**
+```bash
+cd backend-kafka
+./mvnw spring-boot:run
+```
+Kafka API runs on `http://localhost:8081`
 
 ## 2. Start Frontend
 ```bash
