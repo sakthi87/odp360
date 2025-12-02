@@ -1,0 +1,10 @@
+column_name,data_type,description
+ticket_id,uuid,Unique ticket identifier
+customer_id,uuid,Customer who raised the ticket
+issue_type,text,Category of issue
+priority,text,Priority level: low/medium/high/urgent
+created_at,timestamp,Ticket creation time
+last_updated,timestamp,Last activity timestamp
+assigned_agent,text,Agent handling the ticket
+status,text,Ticket status: open/closed/in_progress
+

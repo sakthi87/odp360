@@ -1,0 +1,9 @@
+field_name,description,datatype
+id,Unique Identifier,UUID
+name,User's Full Name,TEXT
+email,User's Email Address,TEXT
+created_at,Record Creation Timestamp,TIMESTAMP
+updated_at,Record Last Update Timestamp,TIMESTAMP
+status,User Account Status,TEXT
+age,User Age,INT
+

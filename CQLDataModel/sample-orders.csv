@@ -1,0 +1,11 @@
+column_name,data_type,description
+order_id,uuid,Unique order identifier
+customer_id,uuid,Customer who placed the order
+product_id,text,Product identifier
+order_date,timestamp,When the order was placed
+delivery_date,timestamp,When the order was delivered
+region,text,Delivery region
+status,text,Order status: pending/shipped/delivered/cancelled
+total_amount,decimal,Total order value
+payment_method,text,Payment method used
+

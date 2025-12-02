@@ -5,6 +5,7 @@ const Tabs = ({ activeTab, onTabChange }) => {
   const tabs = [
     { id: 'datacatalog', label: 'Data Catalog' },
     { id: 'intake', label: 'ODP Intake' },
+    { id: 'intakelist', label: 'Intake List' },
     { id: 'cassandra', label: 'CQL' },
     { id: 'yugabyte', label: 'YSQL' },
     { id: 'graphql', label: 'GraphQL' },

@@ -10,8 +10,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class DataCatalogService {
@@ -139,77 +141,163 @@ public class DataCatalogService {
     }
     
     private List<LineageRelationshipResponse> getUpstreamLineage(Long componentId) {
-        String sql = "SELECT lr.id, lr.relationship_type, lr.operation_type, lr.description, " +
-                "sc.id as source_id, sc.name as source_name, sc.component_type as source_type, " +
-                "sc.display_name as source_display_name, " +
-                "tc.id as target_id, tc.name as target_name, tc.component_type as target_type, " +
-                "tc.display_name as target_display_name " +
-                "FROM metadata.lineage_relationships lr " +
-                "JOIN metadata.components sc ON lr.source_component_id = sc.id " +
-                "JOIN metadata.components tc ON lr.target_component_id = tc.id " +
-                "WHERE tc.id = ? " +
-                "ORDER BY lr.relationship_type";
+        // Get all upstream relationships using multiple hops (up to 4 levels deep)
+        List<LineageRelationshipResponse> allRelationships = new ArrayList<>();
+        Set<Long> processedRelationships = new HashSet<>();
+        Set<Long> visitedComponents = new HashSet<>();
         
-        return jdbcTemplate.query(sql, new Object[]{componentId}, (rs, rowNum) -> {
-            LineageRelationshipResponse lineage = new LineageRelationshipResponse();
-            lineage.setId(rs.getLong("id"));
-            lineage.setRelationshipType(rs.getString("relationship_type"));
-            lineage.setOperationType(rs.getString("operation_type"));
-            lineage.setDescription(rs.getString("description"));
+        // Start with the current component
+        List<Long> currentLevel = new ArrayList<>();
+        currentLevel.add(componentId);
+        visitedComponents.add(componentId);
+        
+        // Traverse up to 4 levels deep
+        for (int depth = 0; depth < 4 && !currentLevel.isEmpty(); depth++) {
+            List<Long> nextLevel = new ArrayList<>();
             
-            ComponentResponse source = new ComponentResponse();
-            source.setId(rs.getLong("source_id"));
-            source.setName(rs.getString("source_name"));
-            source.setComponentType(rs.getString("source_type"));
-            source.setDisplayName(rs.getString("source_display_name"));
-            lineage.setSource(source);
+            for (Long targetId : currentLevel) {
+                // Get direct upstream relationships for this component
+                String sql = "SELECT lr.id, lr.relationship_type, lr.operation_type, lr.description, " +
+                        "sc.id as source_id, sc.name as source_name, sc.component_type as source_type, " +
+                        "sc.display_name as source_display_name, " +
+                        "tc.id as target_id, tc.name as target_name, tc.component_type as target_type, " +
+                        "tc.display_name as target_display_name " +
+                        "FROM metadata.lineage_relationships lr " +
+                        "JOIN metadata.components sc ON lr.source_component_id = sc.id " +
+                        "JOIN metadata.components tc ON lr.target_component_id = tc.id " +
+                        "WHERE tc.id = ?";
+                
+                List<LineageRelationshipResponse> relationships = jdbcTemplate.query(sql, 
+                        new Object[]{targetId}, (rs, rowNum) -> {
+                    LineageRelationshipResponse lineage = new LineageRelationshipResponse();
+                    lineage.setId(rs.getLong("id"));
+                    lineage.setRelationshipType(rs.getString("relationship_type"));
+                    lineage.setOperationType(rs.getString("operation_type"));
+                    lineage.setDescription(rs.getString("description"));
+                    
+                    ComponentResponse source = new ComponentResponse();
+                    source.setId(rs.getLong("source_id"));
+                    source.setName(rs.getString("source_name"));
+                    source.setComponentType(rs.getString("source_type"));
+                    source.setDisplayName(rs.getString("source_display_name"));
+                    lineage.setSource(source);
+                    
+                    ComponentResponse target = new ComponentResponse();
+                    target.setId(rs.getLong("target_id"));
+                    target.setName(rs.getString("target_name"));
+                    target.setComponentType(rs.getString("target_type"));
+                    target.setDisplayName(rs.getString("target_display_name"));
+                    lineage.setTarget(target);
+                    
+                    return lineage;
+                });
+                
+                // Add relationships that haven't been processed yet
+                for (LineageRelationshipResponse rel : relationships) {
+                    if (!processedRelationships.contains(rel.getId())) {
+                        processedRelationships.add(rel.getId());
+                        allRelationships.add(rel);
+                        
+                        // Add source to next level if not already visited
+                        if (!visitedComponents.contains(rel.getSource().getId())) {
+                            nextLevel.add(rel.getSource().getId());
+                            visitedComponents.add(rel.getSource().getId());
+                        }
+                    }
+                }
+            }
             
-            ComponentResponse target = new ComponentResponse();
-            target.setId(rs.getLong("target_id"));
-            target.setName(rs.getString("target_name"));
-            target.setComponentType(rs.getString("target_type"));
-            target.setDisplayName(rs.getString("target_display_name"));
-            lineage.setTarget(target);
-            
-            return lineage;
+            currentLevel = nextLevel;
+        }
+        
+        // Sort by relationship type for consistent display
+        allRelationships.sort((a, b) -> {
+            int typeCompare = a.getRelationshipType().compareTo(b.getRelationshipType());
+            if (typeCompare != 0) return typeCompare;
+            return a.getOperationType().compareTo(b.getOperationType());
         });
+        
+        return allRelationships;
     }
     
     private List<LineageRelationshipResponse> getDownstreamLineage(Long componentId) {
-        String sql = "SELECT lr.id, lr.relationship_type, lr.operation_type, lr.description, " +
-                "sc.id as source_id, sc.name as source_name, sc.component_type as source_type, " +
-                "sc.display_name as source_display_name, " +
-                "tc.id as target_id, tc.name as target_name, tc.component_type as target_type, " +
-                "tc.display_name as target_display_name " +
-                "FROM metadata.lineage_relationships lr " +
-                "JOIN metadata.components sc ON lr.source_component_id = sc.id " +
-                "JOIN metadata.components tc ON lr.target_component_id = tc.id " +
-                "WHERE sc.id = ? " +
-                "ORDER BY lr.relationship_type";
+        // Get all downstream relationships using multiple hops (up to 4 levels deep)
+        List<LineageRelationshipResponse> allRelationships = new ArrayList<>();
+        Set<Long> processedRelationships = new HashSet<>();
+        Set<Long> visitedComponents = new HashSet<>();
         
-        return jdbcTemplate.query(sql, new Object[]{componentId}, (rs, rowNum) -> {
-            LineageRelationshipResponse lineage = new LineageRelationshipResponse();
-            lineage.setId(rs.getLong("id"));
-            lineage.setRelationshipType(rs.getString("relationship_type"));
-            lineage.setOperationType(rs.getString("operation_type"));
-            lineage.setDescription(rs.getString("description"));
+        // Start with the current component
+        List<Long> currentLevel = new ArrayList<>();
+        currentLevel.add(componentId);
+        visitedComponents.add(componentId);
+        
+        // Traverse up to 4 levels deep
+        for (int depth = 0; depth < 4 && !currentLevel.isEmpty(); depth++) {
+            List<Long> nextLevel = new ArrayList<>();
             
-            ComponentResponse source = new ComponentResponse();
-            source.setId(rs.getLong("source_id"));
-            source.setName(rs.getString("source_name"));
-            source.setComponentType(rs.getString("source_type"));
-            source.setDisplayName(rs.getString("source_display_name"));
-            lineage.setSource(source);
+            for (Long sourceId : currentLevel) {
+                // Get direct downstream relationships for this component
+                String sql = "SELECT lr.id, lr.relationship_type, lr.operation_type, lr.description, " +
+                        "sc.id as source_id, sc.name as source_name, sc.component_type as source_type, " +
+                        "sc.display_name as source_display_name, " +
+                        "tc.id as target_id, tc.name as target_name, tc.component_type as target_type, " +
+                        "tc.display_name as target_display_name " +
+                        "FROM metadata.lineage_relationships lr " +
+                        "JOIN metadata.components sc ON lr.source_component_id = sc.id " +
+                        "JOIN metadata.components tc ON lr.target_component_id = tc.id " +
+                        "WHERE sc.id = ?";
+                
+                List<LineageRelationshipResponse> relationships = jdbcTemplate.query(sql, 
+                        new Object[]{sourceId}, (rs, rowNum) -> {
+                    LineageRelationshipResponse lineage = new LineageRelationshipResponse();
+                    lineage.setId(rs.getLong("id"));
+                    lineage.setRelationshipType(rs.getString("relationship_type"));
+                    lineage.setOperationType(rs.getString("operation_type"));
+                    lineage.setDescription(rs.getString("description"));
+                    
+                    ComponentResponse source = new ComponentResponse();
+                    source.setId(rs.getLong("source_id"));
+                    source.setName(rs.getString("source_name"));
+                    source.setComponentType(rs.getString("source_type"));
+                    source.setDisplayName(rs.getString("source_display_name"));
+                    lineage.setSource(source);
+                    
+                    ComponentResponse target = new ComponentResponse();
+                    target.setId(rs.getLong("target_id"));
+                    target.setName(rs.getString("target_name"));
+                    target.setComponentType(rs.getString("target_type"));
+                    target.setDisplayName(rs.getString("target_display_name"));
+                    lineage.setTarget(target);
+                    
+                    return lineage;
+                });
+                
+                // Add relationships that haven't been processed yet
+                for (LineageRelationshipResponse rel : relationships) {
+                    if (!processedRelationships.contains(rel.getId())) {
+                        processedRelationships.add(rel.getId());
+                        allRelationships.add(rel);
+                        
+                        // Add target to next level if not already visited
+                        if (!visitedComponents.contains(rel.getTarget().getId())) {
+                            nextLevel.add(rel.getTarget().getId());
+                            visitedComponents.add(rel.getTarget().getId());
+                        }
+                    }
+                }
+            }
             
-            ComponentResponse target = new ComponentResponse();
-            target.setId(rs.getLong("target_id"));
-            target.setName(rs.getString("target_name"));
-            target.setComponentType(rs.getString("target_type"));
-            target.setDisplayName(rs.getString("target_display_name"));
-            lineage.setTarget(target);
-            
-            return lineage;
+            currentLevel = nextLevel;
+        }
+        
+        // Sort by relationship type for consistent display
+        allRelationships.sort((a, b) -> {
+            int typeCompare = a.getRelationshipType().compareTo(b.getRelationshipType());
+            if (typeCompare != 0) return typeCompare;
+            return a.getOperationType().compareTo(b.getOperationType());
         });
+        
+        return allRelationships;
     }
     
     private static class ComponentRowMapper implements RowMapper<ComponentResponse> {

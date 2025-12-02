@@ -1,0 +1,207 @@
+{
+  "entities": [
+    {
+      "entityName": "orders",
+      "keyspace": "odp_poc",
+      "description": "E-commerce order management",
+      "fields": [
+        {
+          "name": "order_id",
+          "dataType": "uuid",
+          "description": "Unique order identifier",
+          "cardinality": "HIGH",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false
+        },
+        {
+          "name": "customer_id",
+          "dataType": "uuid",
+          "description": "Customer who placed the order",
+          "cardinality": "HIGH",
+          "businessKey": true,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false
+        },
+        {
+          "name": "product_id",
+          "dataType": "text",
+          "description": "Product identifier",
+          "cardinality": "HIGH",
+          "businessKey": true,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false
+        },
+        {
+          "name": "order_date",
+          "dataType": "timestamp",
+          "description": "When the order was placed",
+          "cardinality": "MEDIUM",
+          "businessKey": true,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": true
+        },
+        {
+          "name": "delivery_date",
+          "dataType": "timestamp",
+          "description": "When the order was delivered",
+          "cardinality": "UNKNOWN",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": true
+        },
+        {
+          "name": "region",
+          "dataType": "text",
+          "description": "Delivery region",
+          "cardinality": "LOW",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false
+        },
+        {
+          "name": "status",
+          "dataType": "text",
+          "description": "Order status: pending/shipped/delivered/cancelled",
+          "cardinality": "LOW",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false
+        },
+        {
+          "name": "total_amount",
+          "dataType": "decimal",
+          "description": "Total order value",
+          "cardinality": "UNKNOWN",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false
+        },
+        {
+          "name": "payment_method",
+          "dataType": "text",
+          "description": "Payment method used",
+          "cardinality": "LOW",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false
+        }
+      ],
+      "accessPatterns": [
+        {
+          "name": "Get the orders by customer_id",
+          "description": "Get the orders by customer_id",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the order by customer_id and product_id",
+          "description": "Get the order by customer_id and product_id",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "product_id",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the orders by Customer_id, product_id and Order_date desc",
+          "description": "Get the orders by Customer_id, product_id and Order_date desc",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "product_id",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [
+            {
+              "field": "order_date",
+              "direction": "DESC"
+            }
+          ],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the orders by total_amount range based",
+          "description": "Get the orders by total_amount range based",
+          "filters": [
+            {
+              "field": "total_amount",
+              "type": "RANGE"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the orders by order_date range based",
+          "description": "Get the orders by order_date range based",
+          "filters": [
+            {
+              "field": "order_date",
+              "type": "RANGE"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the orders by payment_method",
+          "description": "Get the orders by payment_method",
+          "filters": [
+            {
+              "field": "payment_method",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "LOW"
+        },
+        {
+          "name": "Get the orders by status",
+          "description": "Get the orders by status",
+          "filters": [
+            {
+              "field": "status",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "LOW"
+        }
+      ],
+      "constraints": {
+        "partitionSizeExpectation": "MEDIUM",
+        "queryVolume": "READ_HEAVY",
+        "multiTenant": false,
+        "timeSeries": false
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,9 @@
+field_name,description,datatype
+order_id,Unique Order Identifier,UUID
+user_id,User who placed the order,UUID
+order_date,Order Placement Date,TIMESTAMP
+total_amount,Total Order Amount,DECIMAL
+status,Order Status,TEXT
+shipping_address,Shipping Address,TEXT
+created_at,Record Creation Timestamp,TIMESTAMP
+

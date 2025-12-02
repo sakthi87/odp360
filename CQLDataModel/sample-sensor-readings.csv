@@ -1,0 +1,9 @@
+column_name,data_type,description
+sensor_id,text,Unique sensor identifier
+location,text,Sensor physical location
+device_type,text,Sensor category/type
+recorded_at,timestamp,Time of reading
+temperature,decimal,Sensor temperature reading
+humidity,decimal,Sensor humidity reading
+status,text,Sensor status: active/offline/maintenance
+

@@ -1,0 +1,10 @@
+column_name,data_type,description
+vehicle_id,text,Unique vehicle identifier
+fleet_id,text,Group of vehicles
+recorded_at,timestamp,Telemetry timestamp
+speed,int,Vehicle speed
+fuel_level,int,Remaining fuel percentage
+latitude,double,Location latitude
+longitude,double,Location longitude
+status,text,Vehicle status: active/offline
+

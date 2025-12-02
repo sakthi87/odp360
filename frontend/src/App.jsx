@@ -5,6 +5,7 @@ import GraphQLBrowser from './components/GraphQLBrowser'
 import KafkaBrowser from './components/KafkaBrowser'
 import DataCatalog from './components/DataCatalog'
 import IntakeForm from './components/IntakeForm'
+import IntakeList from './components/IntakeList'
 import Tabs from './components/Tabs'
 import './App.css'
 
@@ -28,6 +29,8 @@ function App() {
         return <DataCatalog />
       case 'intake':
         return <IntakeForm />
+      case 'intakelist':
+        return <IntakeList />
       case 'cassandra':
         return <CassandraBrowser />
       case 'yugabyte':

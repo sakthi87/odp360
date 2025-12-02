@@ -1,0 +1,10 @@
+column_name,data_type,description
+session_id,uuid,Unique session identifier
+user_id,text,User identifier
+device_type,text,Device type: mobile/desktop/tablet
+login_timestamp,timestamp,When user logged in
+logout_timestamp,timestamp,When user logged out
+city,text,User location city
+country,text,User location country
+ip_address,text,User IP address
+

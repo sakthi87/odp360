@@ -1,0 +1,11 @@
+column_name,data_type,description
+customer_id,uuid,Unique customer identifier
+account_number,text,Business key for account
+region,text,Region where customer lives
+email,text,Customer email address
+phone,text,Customer phone number
+status,text,Account status: active/inactive
+created_at,timestamp,Account creation time
+last_login,timestamp,Last login timestamp
+total_balance,decimal,Customer account balance
+

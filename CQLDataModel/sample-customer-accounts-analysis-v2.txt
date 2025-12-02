@@ -1,0 +1,201 @@
+`sample-customer-accounts.csv`
+**Use Case**: Customer account management
+
+**Fields**: 9 columns
+- `customer_id` (uuid) - High cardinality
+- `account_number` (text) - High cardinality, business key
+- `region` (text) - Low cardinality
+- `email` (text) - High cardinality
+- `phone` (text) - Medium cardinality
+- `status` (text) - Low cardinality
+- `created_at` (timestamp) - Time field
+- `last_login` (timestamp) - Time field
+- `total_balance` (decimal)
+
+Query Access Pattern 1: Get the customer account details by Customer_id
+Query Access Pattern 2: Get the customer account details by Customer_id, account_number
+Query Access Pattern 3: Get the customer account details by Customer_id, account_number, created_at [Equality & Desc]
+Query Access Pattern 4: Get the customer account details by Customer_id, account_number, status
+Query Access Pattern 5: Get the customer account details by Customer_id, status
+Query Access Pattern 6: Get the customer account details by Customer_id, total_balance [range]
+
+what will be the PK, CK and Index for this one.
+
+
+Analyzing the 6 query access patterns to determine PK, CK, and indexes:
+
+## Pattern Analysis
+
+**Pattern 1**: Get customer account details by `customer_id` (equality filter)  
+**Pattern 2**: Get customer account details by `customer_id` + `account_number` (equality filters)  
+**Pattern 3**: Get customer account details by `customer_id` + `account_number` + `created_at` (equality) + `created_at DESC` (sort)  
+**Pattern 4**: Get customer account details by `customer_id` + `account_number` + `status` (equality filters)  
+**Pattern 5**: Get customer account details by `customer_id` + `status` (equality filters)  
+**Pattern 6**: Get customer account details by `customer_id` + `total_balance` (range filter)
+
+---
+
+## Partition Key (PK) Decision
+
+- `customer_id` appears in ALL 6 patterns (frequency: 6 - most frequent)
+- High cardinality (unique per customer)
+- Supports "get all accounts for a customer"
+- Stable and immutable
+
+**PK = `customer_id`**
+
+---
+
+## Clustering Keys (CK) Decision
+
+**CRITICAL CONSTRAINT**: Clustering keys must be used sequentially. Cannot skip a CK in queries.
+
+**CRITICAL ORDERING RULE**: Equality filters → Range filters → Sort fields
+
+**Pattern Analysis:**
+- Pattern 2: `customer_id` + `account_number` (equality) → `account_number` becomes first CK
+- Pattern 3: `customer_id` + `account_number` + `created_at` (equality) + `created_at DESC` (sort)
+  - **Key Point**: `created_at` is BOTH an equality filter AND a sort field in Pattern 3
+  - This means `created_at` should be a CK (as equality filter), and the sort direction is DESC
+- Pattern 4: `customer_id` + `account_number` + `status` (equality) → `status` is an EQUALITY filter
+- Pattern 5: `customer_id` + `status` (equality) → **CONFLICT**: Cannot work if `account_number` is a CK (would skip it)
+- Pattern 6: `customer_id` + `total_balance` (range) → **CONFLICT**: Cannot work if `account_number` is a CK (would skip it)
+
+**Decision Strategy - CK Ordering:**
+Following the rule: **Equality filters → Range filters → Sort fields**
+
+**CRITICAL INSIGHT**: Pattern 3 has `created_at` as BOTH an equality filter AND a sort field (ORDER BY). In Cassandra:
+- When a column is used for ORDER BY, it MUST be a clustering key
+- Clustering keys must be used sequentially - you cannot skip intermediate CKs
+- If Pattern 3 needs `account_number` (equality) and `created_at` (equality + sort), we cannot insert `status` between them
+
+**Analysis:**
+1. **First CK**: `account_number` (equality filter from Pattern 2)
+   - Pattern 2: `customer_id` + `account_number` → `account_number` is first CK
+2. **Second CK**: `created_at DESC` (equality + sort from Pattern 3)
+   - Pattern 3: `customer_id` + `account_number` + `created_at` (equality) + `created_at DESC` (sort)
+   - Since `created_at` is used for ORDER BY, it MUST be a clustering key
+   - Pattern 3 works with: `WHERE customer_id = ? AND account_number = ? AND created_at = ? ORDER BY created_at DESC`
+3. **`status` cannot be a clustering key** between `account_number` and `created_at`
+   - If `status` were a CK between them, Pattern 3 would need: `WHERE customer_id = ? AND account_number = ? AND status = ? AND created_at = ?`
+   - But Pattern 3 doesn't filter by `status`, so this won't work
+   - **Solution**: `status` must be an INDEX, not a clustering key
+
+**Why this order?**
+- Pattern 3 requires `created_at` as a clustering key (equality + ORDER BY)
+- Pattern 3 has `account_number` before `created_at`
+- We cannot insert `status` between `account_number` and `created_at` because Pattern 3 doesn't filter by `status`
+- Therefore: `account_number` (equality) → `created_at DESC` (equality + sort)
+- `status` becomes an INDEX to support Pattern 4
+
+**Pattern 3 Query with this CK structure:**
+- Pattern 3: `WHERE customer_id = ? AND account_number = ? AND created_at = ? ORDER BY created_at DESC`
+- This works perfectly - uses PK + both CKs, with sort on the second CK
+
+**Pattern 4 Query with this CK structure:**
+- Pattern 4: `WHERE customer_id = ? AND account_number = ? AND status = ?`
+- This works using PK + first CK (`account_number`) + index on `status`
+
+**CK = `(account_number, created_at DESC)`**
+
+**Note on Pattern 4**: 
+- Pattern 4 (`customer_id` + `account_number` + `status`) works using PK + first CK (`account_number`) + index on `status`
+- Query: `WHERE customer_id = ? AND account_number = ? AND status = ?` (uses index on `status`)
+
+**Note on Pattern 5**: 
+- Pattern 5 (`customer_id` + `status` only) cannot work because it would skip `account_number` CK
+- Required query: `WHERE customer_id = ? AND account_number = ? AND status = ?` (must include `account_number`, uses index on `status`)
+
+---
+
+## Indexes Decision
+
+Indexes needed for fields not in PK/CK that are used in queries:
+
+- Pattern 4: `status` (equality) — not in PK/CK → needs index
+  - Pattern 4: `customer_id` + `account_number` + `status`
+  - Query: `WHERE customer_id = ? AND account_number = ? AND status = ?` (uses index on `status`)
+- Pattern 5: `status` (equality) — same as Pattern 4, uses same index
+- Pattern 6: `total_balance` (range) — not in PK/CK → needs index
+
+**Indexes = `status`, `total_balance`**
+
+**Why `status` is an index, not a CK:**
+- Pattern 3 requires `created_at` as a clustering key (equality + ORDER BY)
+- Pattern 3 has `account_number` before `created_at`
+- We cannot insert `status` between `account_number` and `created_at` because Pattern 3 doesn't filter by `status`
+- Therefore, `status` must be an index to support Pattern 4 and Pattern 5
+
+---
+
+## Final Design Summary
+
+| Component | Value | Reasoning |
+|-----------|-------|-----------|
+| **Partition Key** | `customer_id` | Most frequent (6 occurrences), high cardinality |
+| **Clustering Keys** | `account_number, created_at DESC` | Pattern 3 requires `created_at` as CK (equality + ORDER BY). Cannot insert `status` between `account_number` and `created_at` |
+| **Indexes** | `status`, `total_balance` | `status` is an index (cannot be CK between `account_number` and `created_at`). `total_balance` is an index for Pattern 6 |
+
+---
+
+## Generated CQL (Conceptual)
+
+```sql
+CREATE TABLE IF NOT EXISTS customer_accounts (
+    customer_id UUID COMMENT 'Customer identifier',
+    account_number TEXT COMMENT 'Account number - business key',
+    region TEXT COMMENT 'Customer region',
+    email TEXT COMMENT 'Customer email',
+    phone TEXT COMMENT 'Customer phone',
+    status TEXT COMMENT 'Account status',
+    created_at TIMESTAMP COMMENT 'Account creation timestamp',
+    last_login TIMESTAMP COMMENT 'Last login timestamp',
+    total_balance DECIMAL COMMENT 'Account balance',
+    PRIMARY KEY ((customer_id), account_number, created_at)
+) WITH CLUSTERING ORDER BY (account_number ASC, created_at DESC);
+
+-- Indexes
+CREATE CUSTOM INDEX customer_accounts_status_sai_idx 
+ON customer_accounts (status) USING 'StorageAttachedIndex';
+
+CREATE CUSTOM INDEX customer_accounts_total_balance_sai_idx 
+ON customer_accounts (total_balance) USING 'StorageAttachedIndex';
+```
+
+---
+
+## Query Support
+
+- **Pattern 1**: `SELECT * FROM customer_accounts WHERE customer_id = ?` ✓ Works
+- **Pattern 2**: `SELECT * FROM customer_accounts WHERE customer_id = ? AND account_number = ?` ✓ Works (uses PK + first CK)
+- **Pattern 3**: `SELECT * FROM customer_accounts WHERE customer_id = ? AND account_number = ? AND created_at = ? ORDER BY created_at DESC` ✓ Works
+  - Uses PK + both CKs (`account_number`, `created_at`), with sort on the second CK
+- **Pattern 4**: `SELECT * FROM customer_accounts WHERE customer_id = ? AND account_number = ? AND status = ?` ✓ Works
+  - Uses PK + first CK (`account_number`) + index on `status`
+- **Pattern 5**: `SELECT * FROM customer_accounts WHERE customer_id = ? AND status = ?` ✗ **Cannot work** - would skip `account_number` CK
+  - **Required**: `WHERE customer_id = ? AND account_number = ? AND status = ?` (must include `account_number`, uses index on `status`)
+- **Pattern 6**: `SELECT * FROM customer_accounts WHERE customer_id = ? AND total_balance > ?` ✓ Works (uses index on `total_balance`)
+
+---
+
+## Important Notes
+
+1. **Pattern 3 Requirement**: Pattern 3 has `created_at` as BOTH an equality filter AND a sort field (ORDER BY). In Cassandra, when a column is used for ORDER BY, it MUST be a clustering key. Therefore, `created_at` must be a clustering key.
+
+2. **Sequential CK Rule**: Clustering keys must be used sequentially - you cannot skip intermediate CKs. Since Pattern 3 has `account_number` (equality) before `created_at` (equality + sort), and Pattern 3 does NOT filter by `status`, we cannot insert `status` as a clustering key between `account_number` and `created_at`.
+
+3. **Status as Index**: Since `status` cannot be a clustering key (it would break Pattern 3), it must be an index to support Pattern 4 and Pattern 5.
+
+4. **Pattern 3 Support**: Pattern 3 works perfectly with `account_number` and `created_at` as clustering keys:
+   - Query: `WHERE customer_id = ? AND account_number = ? AND created_at = ? ORDER BY created_at DESC`
+
+5. **Pattern 4 Support**: Pattern 4 works using PK + first CK (`account_number`) + index on `status`:
+   - Query: `WHERE customer_id = ? AND account_number = ? AND status = ?`
+
+6. **Pattern 5 Limitation**: Pattern 5 cannot work as specified (`customer_id` + `status` only) because it would skip `account_number` clustering key. The query must include `account_number`:
+   - **Required Query**: `WHERE customer_id = ? AND account_number = ? AND status = ?` (uses index on `status`)
+
+7. **Key Principle**: When a column is used for ORDER BY, it must be a clustering key. You cannot insert other columns as clustering keys between columns that are used together in a pattern if those intermediate columns are not filtered in that pattern.
+
+Does this match your requirements?
+

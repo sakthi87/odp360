@@ -1,0 +1,187 @@
+{
+  "entities": [
+    {
+      "entityName": "sensor_readings",
+      "keyspace": "odp_poc",
+      "description": "IoT sensor time-series data",
+      "fields": [
+        {
+          "name": "sensor_id",
+          "dataType": "TEXT",
+          "description": "Sensor identifier",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "HIGH"
+        },
+        {
+          "name": "location",
+          "dataType": "TEXT",
+          "description": "Sensor location",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "device_type",
+          "dataType": "TEXT",
+          "description": "Type of device",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "LOW"
+        },
+        {
+          "name": "recorded_at",
+          "dataType": "TIMESTAMP",
+          "description": "Timestamp when reading was recorded",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": true,
+          "cardinality": "UNKNOWN"
+        },
+        {
+          "name": "temperature",
+          "dataType": "DECIMAL",
+          "description": "Temperature reading",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "UNKNOWN"
+        },
+        {
+          "name": "humidity",
+          "dataType": "DECIMAL",
+          "description": "Humidity reading",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "UNKNOWN"
+        },
+        {
+          "name": "status",
+          "dataType": "TEXT",
+          "description": "Sensor status",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "LOW"
+        }
+      ],
+      "accessPatterns": [
+        {
+          "name": "Get the sensor readings by sensor_id",
+          "description": "Get the sensor readings by sensor_id",
+          "filters": [
+            {
+              "field": "sensor_id",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the sensor readings by sensor_id, location",
+          "description": "Get the sensor readings by sensor_id, location",
+          "filters": [
+            {
+              "field": "sensor_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "location",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the sensor readings by sensor_id, location, device_type",
+          "description": "Get the sensor readings by sensor_id, location, device_type",
+          "filters": [
+            {
+              "field": "sensor_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "location",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "device_type",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the sensor readings by sensor_id, location, device_type, recorded_at [Equality & Desc]",
+          "description": "Get the sensor readings by sensor_id, location, device_type, recorded_at [Equality & Desc]",
+          "filters": [
+            {
+              "field": "sensor_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "location",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "device_type",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "recorded_at",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [
+            {
+              "field": "recorded_at",
+              "direction": "DESC"
+            }
+          ],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the sensor readings by sensor_id, location, status",
+          "description": "Get the sensor readings by sensor_id, location, status",
+          "filters": [
+            {
+              "field": "sensor_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "location",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "status",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        }
+      ],
+      "constraints": {
+        "partitionSizeExpectation": "MEDIUM",
+        "queryVolume": "READ_HEAVY",
+        "multiTenant": false,
+        "timeSeries": false
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,168 @@
+`sample-sensor-readings.csv`
+**Use Case**: IoT sensor time-series data
+
+**Fields**: 7 columns
+- `sensor_id` (text) - High cardinality
+- `location` (text) - Medium cardinality
+- `device_type` (text) - Low cardinality
+- `recorded_at` (timestamp) - Time field
+- `temperature` (decimal)
+- `humidity` (decimal)
+- `status` (text) - Low cardinality
+
+Query Access Pattern 1: Get the sensor readings by sensor_id
+Query Access Pattern 2: Get the sensor readings by sensor_id, location
+Query Access Pattern 3: Get the sensor readings by sensor_id, location, device_type
+Query Access Pattern 4: Get the sensor readings by sensor_id, location, device_type, recorded_at [Equality & Desc]
+Query Access Pattern 5: Get the sensor readings by sensor_id, location, status
+
+what will be the PK, CK and Index for this one.
+
+
+Analyzing the 5 query access patterns to determine PK, CK, and indexes:
+
+## Pattern Analysis
+
+**Pattern 1**: Get sensor readings by `sensor_id` (equality filter)  
+**Pattern 2**: Get sensor readings by `sensor_id` + `location` (equality filters)  
+**Pattern 3**: Get sensor readings by `sensor_id` + `location` + `device_type` (equality filters)  
+**Pattern 4**: Get sensor readings by `sensor_id` + `location` + `device_type` + `recorded_at` (equality) + `recorded_at DESC` (sort)  
+**Pattern 5**: Get sensor readings by `sensor_id` + `location` + `status` (equality filters)
+
+---
+
+## Partition Key (PK) Decision
+
+- `sensor_id` appears in ALL 5 patterns (frequency: 5 - most frequent)
+- High cardinality (unique per sensor)
+- Supports "get all readings for a sensor"
+- Stable and immutable
+
+**PK = `sensor_id`**
+
+---
+
+## Clustering Keys (CK) Decision
+
+**CRITICAL CONSTRAINT**: Clustering keys must be used sequentially. Cannot skip a CK in queries.
+
+**CRITICAL ORDERING RULE**: Equality filters → Range filters → Sort fields
+
+**Pattern Analysis:**
+- Pattern 2: `sensor_id` + `location` (equality) → `location` becomes first CK
+- Pattern 3: `sensor_id` + `location` + `device_type` (equality) → `device_type` becomes second CK
+- Pattern 4: `sensor_id` + `location` + `device_type` + `recorded_at` (equality) + `recorded_at DESC` (sort)
+  - **Key Point**: `recorded_at` is BOTH an equality filter AND a sort field in Pattern 4
+  - This means `recorded_at` MUST be a clustering key (as equality), and it comes after `device_type`
+- Pattern 5: `sensor_id` + `location` + `status` (equality) → **CONFLICT**: Cannot insert `status` between `device_type` and `recorded_at`
+
+**Decision Strategy - CK Ordering:**
+Following the rule: **Equality filters → Range filters → Sort fields**
+
+1. **First CK**: `location` (equality filter from Pattern 2)
+2. **Second CK**: `device_type` (equality filter from Pattern 3)
+   - Pattern 3: `sensor_id` + `location` + `device_type` → `device_type` comes after `location`
+3. **Third CK**: `recorded_at DESC` (equality + sort from Pattern 4)
+   - Pattern 4: `sensor_id` + `location` + `device_type` + `recorded_at` (equality) + `recorded_at DESC` (sort)
+   - Since `recorded_at` is used for ORDER BY, it MUST be a clustering key
+   - Pattern 4 works with: `WHERE sensor_id = ? AND location = ? AND device_type = ? AND recorded_at = ? ORDER BY recorded_at DESC`
+
+**Why this order?**
+- Pattern 3 requires `device_type` as a clustering key (equality filter)
+- Pattern 4 requires `recorded_at` as a clustering key (equality filter + ORDER BY)
+- Pattern 4 has `device_type` before `recorded_at`, so `device_type` must come before `recorded_at` in CK order
+- We cannot insert `status` between `device_type` and `recorded_at` because Pattern 4 doesn't filter by `status`
+- Therefore: `location` (equality) → `device_type` (equality) → `recorded_at DESC` (equality + sort)
+- `status` becomes an INDEX to support Pattern 5
+
+**Pattern 4 Query with this CK structure:**
+- Pattern 4: `WHERE sensor_id = ? AND location = ? AND device_type = ? AND recorded_at = ? ORDER BY recorded_at DESC`
+- This works perfectly - uses PK + all three CKs, with sort on the third CK
+
+**Pattern 5 Query with this CK structure:**
+- Pattern 5: `WHERE sensor_id = ? AND location = ? AND status = ?`
+- This works using PK + first CK (`location`) + index on `status`
+
+**CK = `(location, device_type, recorded_at DESC)`**
+
+**Note on Pattern 5**: 
+- Pattern 5 (`sensor_id` + `location` + `status`) works using PK + first CK (`location`) + index on `status`
+- Query: `WHERE sensor_id = ? AND location = ? AND status = ?` (uses index on `status`)
+
+---
+
+## Indexes Decision
+
+Indexes needed for fields not in PK/CK that are used in queries:
+
+- Pattern 5: `status` (equality) — not in PK/CK → needs index
+  - Pattern 5: `sensor_id` + `location` + `status`
+  - Query: `WHERE sensor_id = ? AND location = ? AND status = ?` (uses index on `status`)
+
+**Indexes = `status`**
+
+**Why `status` is an index, not a CK:**
+- Pattern 4 requires `recorded_at` as a clustering key (equality + ORDER BY)
+- Pattern 4 has `device_type` before `recorded_at`
+- We cannot insert `status` between `device_type` and `recorded_at` because Pattern 4 doesn't filter by `status`
+- Therefore, `status` must be an index to support Pattern 5
+
+---
+
+## Final Design Summary
+
+| Component | Value | Reasoning |
+|-----------|-------|-----------|
+| **Partition Key** | `sensor_id` | Most frequent (5 occurrences), high cardinality |
+| **Clustering Keys** | `location, device_type, recorded_at DESC` | Pattern 4 requires `recorded_at` as CK (equality + ORDER BY). Cannot insert `status` between `device_type` and `recorded_at` |
+| **Indexes** | `status` | Field not in PK/CK used in Pattern 5. Cannot be CK because it would break Pattern 4 |
+
+---
+
+## Generated CQL (Conceptual)
+
+```sql
+CREATE TABLE IF NOT EXISTS sensor_readings (
+    sensor_id TEXT COMMENT 'Sensor identifier',
+    location TEXT COMMENT 'Sensor location',
+    device_type TEXT COMMENT 'Type of device',
+    recorded_at TIMESTAMP COMMENT 'Timestamp when reading was recorded',
+    temperature DECIMAL COMMENT 'Temperature reading',
+    humidity DECIMAL COMMENT 'Humidity reading',
+    status TEXT COMMENT 'Sensor status',
+    PRIMARY KEY ((sensor_id), location, device_type, recorded_at)
+) WITH CLUSTERING ORDER BY (location ASC, device_type ASC, recorded_at DESC);
+
+-- Indexes
+CREATE CUSTOM INDEX sensor_readings_status_sai_idx 
+ON sensor_readings (status) USING 'StorageAttachedIndex';
+```
+
+---
+
+## Query Support
+
+- **Pattern 1**: `SELECT * FROM sensor_readings WHERE sensor_id = ?` ✓ Works
+- **Pattern 2**: `SELECT * FROM sensor_readings WHERE sensor_id = ? AND location = ?` ✓ Works (uses PK + first CK)
+- **Pattern 3**: `SELECT * FROM sensor_readings WHERE sensor_id = ? AND location = ? AND device_type = ?` ✓ Works (uses PK + first two CKs)
+- **Pattern 4**: `SELECT * FROM sensor_readings WHERE sensor_id = ? AND location = ? AND device_type = ? AND recorded_at = ? ORDER BY recorded_at DESC` ✓ Works
+  - Uses PK + all three CKs, with sort on the third CK
+- **Pattern 5**: `SELECT * FROM sensor_readings WHERE sensor_id = ? AND location = ? AND status = ?` ✓ Works
+  - Uses PK + first CK (`location`) + index on `status`
+
+---
+
+## Important Notes
+
+1. **Pattern 4 Requirement**: Pattern 4 has `recorded_at` as BOTH an equality filter AND a sort field (ORDER BY). In Cassandra, when a column is used for ORDER BY, it MUST be a clustering key. Therefore, `recorded_at` must be a clustering key.
+
+2. **Sequential CK Rule**: Clustering keys must be used sequentially - you cannot skip intermediate CKs. Since Pattern 4 has `device_type` before `recorded_at`, and Pattern 4 doesn't filter by `status`, we cannot insert `status` as a clustering key between `device_type` and `recorded_at`.
+
+3. **Status as Index**: Since `status` cannot be a clustering key (it would break Pattern 4), it must be an index to support Pattern 5. Pattern 5 works using PK + first CK (`location`) + index on `status`.
+
+4. **Pattern Priority**: The design prioritizes Pattern 4's requirement (equality + ORDER BY on `recorded_at`) over making `status` a clustering key. This ensures Pattern 4 works correctly while Pattern 5 can still work using an index.
+
+5. **Key Principle**: When a column is used for ORDER BY, it must be a clustering key. You cannot insert other columns as clustering keys between columns that are used together in a pattern if those intermediate columns are not filtered in that pattern.
+
+Does this match your requirements?
+

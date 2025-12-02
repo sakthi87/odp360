@@ -1,0 +1,215 @@
+{
+  "entities": [
+    {
+      "entityName": "customer_accounts",
+      "keyspace": "odp_poc",
+      "description": "Customer account management",
+      "fields": [
+        {
+          "name": "customer_id",
+          "dataType": "UUID",
+          "description": "Customer identifier",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "HIGH"
+        },
+        {
+          "name": "account_number",
+          "dataType": "TEXT",
+          "description": "Account number - business key",
+          "businessKey": true,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "HIGH"
+        },
+        {
+          "name": "region",
+          "dataType": "TEXT",
+          "description": "Customer region",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "LOW"
+        },
+        {
+          "name": "email",
+          "dataType": "TEXT",
+          "description": "Customer email",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "HIGH"
+        },
+        {
+          "name": "phone",
+          "dataType": "TEXT",
+          "description": "Customer phone",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "status",
+          "dataType": "TEXT",
+          "description": "Account status",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "LOW"
+        },
+        {
+          "name": "created_at",
+          "dataType": "TIMESTAMP",
+          "description": "Account creation timestamp",
+          "businessKey": false,
+          "mutable": false,
+          "tenantField": false,
+          "timeField": true,
+          "cardinality": "UNKNOWN"
+        },
+        {
+          "name": "last_login",
+          "dataType": "TIMESTAMP",
+          "description": "Last login timestamp",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": true,
+          "cardinality": "UNKNOWN"
+        },
+        {
+          "name": "total_balance",
+          "dataType": "DECIMAL",
+          "description": "Account balance",
+          "businessKey": false,
+          "mutable": true,
+          "tenantField": false,
+          "timeField": false,
+          "cardinality": "UNKNOWN"
+        }
+      ],
+      "accessPatterns": [
+        {
+          "name": "Get the customer account details by Customer_id",
+          "description": "Get the customer account details by Customer_id",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the customer account details by Customer_id, account_number",
+          "description": "Get the customer account details by Customer_id, account_number",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "account_number",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the customer account details by Customer_id, account_number, created_at [Equality & Desc]",
+          "description": "Get the customer account details by Customer_id, account_number, created_at [Equality & Desc]",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "account_number",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "created_at",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [
+            {
+              "field": "created_at",
+              "direction": "DESC"
+            }
+          ],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the customer account details by Customer_id, account_number, status",
+          "description": "Get the customer account details by Customer_id, account_number, status",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "account_number",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "status",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the customer account details by Customer_id, status",
+          "description": "Get the customer account details by Customer_id, status",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "status",
+              "type": "EQUALITY"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        },
+        {
+          "name": "Get the customer account details by Customer_id, total_balance [range]",
+          "description": "Get the customer account details by Customer_id, total_balance [range]",
+          "filters": [
+            {
+              "field": "customer_id",
+              "type": "EQUALITY"
+            },
+            {
+              "field": "total_balance",
+              "type": "RANGE"
+            }
+          ],
+          "sortFields": [],
+          "cardinality": "MEDIUM"
+        }
+      ],
+      "constraints": {
+        "partitionSizeExpectation": "MEDIUM",
+        "queryVolume": "READ_HEAVY",
+        "multiTenant": false,
+        "timeSeries": false
+      }
+    }
+  ]
+}
+
